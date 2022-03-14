@@ -103,7 +103,7 @@ async def registration(user: UserCreate = Body(default=None), db: Session = Depe
         return {"status": "failed", "message":"Password and Confirm Password Doesn't Match!!!!"}
 
 
-@router.put("/verifytoken", tags=["User"])
+@router.put("/verify-email", tags=["User"])
 async def email_verification(token: str = Query(default=None), db: Session = Depends(get_db)):
     if token:
         verified = jwt.decode(token, setting.SECRET_KEY, algorithms=setting.ALGORITHM)
@@ -111,10 +111,11 @@ async def email_verification(token: str = Query(default=None), db: Session = Dep
             email: str = verified.get("sub")
             existing_data = db.query(User).filter(User.email == email)
             if not existing_data.first():
-                return {"message":"Email Verification Unsuccessfull...."}
-            existing_data.update({"is_active": True})
-            db.commit()
-            return {"message": "Email Verification Successfully"}
+                return {"status":"failed","message":"Email Verification Unsuccessfull...."}
+            else:
+                existing_data.update({"is_active": True})
+                db.commit()
+                return {"message": "Email Verification Successfully"}
         else:
             return {"status":"failed", "message":"token expires please re-registration"}
     else:

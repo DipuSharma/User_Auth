@@ -17,22 +17,23 @@ router = APIRouter()
 async def create_emp(item: CreateProduct, db: Session = Depends(get_db), token: str = Depends(oauth2_scheme)):
     if not item:
         return {"status": "failed", "message":"All Field required"}
-    else:
-        payload = jwt.decode(token, setting.SECRET_KEY, algorithms=setting.ALGORITHM)
-        if not payload:
-            return {"status":"failed", "message":"You are not authorized"}
-        else:
-            username = payload.get("sub")
-            if username is None:
-                raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Unable to verify credentials")
-            else:
-                user = db.query(User).filter(User.email == username).first()
+    elif token:
+        verified = jwt.decode(token, setting.SECRET_KEY, algorithms=setting.ALGORITHM)
+        if verified['expiry'] >= time():
+            user = db.query(User).filter(User.email == verified['sub']).first()
+            e_name = db.query(Product).filter(Product.name == item.name).first()
+            if not e_name:
                 owner_id = user.id
-                item = Product(**item.dict(), owner_id=owner_id)
-                db.add(item)
+                data = Product(name= item.name, description=item.description, price=item.price, d_price= item.d_price, photo= item.price, owner_id= owner_id)
+                db.add(data)
                 db.commit()
-                db.refresh(item)
-                return {"status":"success","message": "Item successfully created", item: item}
+                return {"status":"success","message": "Item successfully created", "data": data}
+            else:
+                return {"status": "failed", "message": "The Product of This Name exists already", "data": e_name}
+        else:
+            return {"status":"failed", "message":"You are not authorized"}
+    else:
+        return {"status":"failed", "message":"Token Not Found"}
 
 
 
