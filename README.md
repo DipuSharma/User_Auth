@@ -13,4 +13,5 @@ EMAIL_FROM = xyz@gmail.com
 ALGO = "HS256"
 
 ## Run Application 
-if you set all value in .env file then after you uncomment the line of code, which present in user.py file 
+if you set all value in .env file then after you run commond uvicorn main:app --reload 
+else comment the line of code (23 - 33), (52 - 89) and 93, which present in user.py file 
