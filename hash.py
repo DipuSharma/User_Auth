@@ -1,6 +1,6 @@
 from fastapi import HTTPException, status, Response
 from passlib.context import CryptContext
-from config import setting
+from db_config.config import setting
 from models import User
 from jose import jwt
 

@@ -1,6 +1,6 @@
 from fastapi import FastAPI
-from config import setting
-from database import engine
+from db_config.config import setting
+from db_config.database import engine
 from models import Base
 from routers import users, login, product
 from fastapi.middleware.cors import CORSMiddleware

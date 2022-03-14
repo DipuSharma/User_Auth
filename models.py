@@ -1,5 +1,5 @@
 from unicodedata import category
-from database import Base
+from db_config.database import Base
 from sqlalchemy import Column, Float, Integer, String, Boolean, ForeignKey, true
 from sqlalchemy.orm import relationship
 

@@ -3,12 +3,12 @@ from fastapi import APIRouter, Body, Depends, HTTPException, Query, status
 from schemas import CreateProduct, ShowProduct
 from models import Product, User
 from sqlalchemy.orm import Session
-from database import get_db
+from db_config.database import get_db
 from typing import List
 from fastapi.encoders import jsonable_encoder
 from routers.login import oauth2_scheme
 from jose import jwt
-from config import setting
+from db_config.config import setting
 
 router = APIRouter()
 

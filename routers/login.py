@@ -3,11 +3,11 @@ from time import time
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from fastapi import APIRouter, Depends, HTTPException, status, Response, Request
 from sqlalchemy.orm import Session
-from database import get_db
+from db_config.database import get_db
 from models import User
 from hash import Hash
 from jose import jwt
-from config import setting
+from db_config.config import setting
 from schemas import LoginUser
 import re
 

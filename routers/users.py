@@ -8,10 +8,10 @@ from hash import Hash
 from sqlalchemy.orm import Session
 from fastapi_mail import FastMail, MessageSchema, ConnectionConfig
 from fastapi.encoders import jsonable_encoder
-from database import get_db
+from db_config.database import get_db
 from models import User
 import os
-from config import setting
+from db_config.config import setting
 from jose import jwt
 from starlette.responses import HTMLResponse
 from dotenv import load_dotenv
