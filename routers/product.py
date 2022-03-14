@@ -66,20 +66,22 @@ async def employee_fetch(id: int = Query(default=None), db: Session = Depends(ge
 
 @router.put('/product/update', tags=['Product'])
 async def employee_edit(id: int = Query(default=None), item: CreateProduct = Body(default=None), db: Session = Depends(get_db), token: str = Depends(oauth2_scheme)):
-    payload = jwt.decode(token, setting.SECRET_KEY, algorithms=setting.ALGORITHM)
-    if payload['expiry'] >= time():
-        username = payload.get("sub")
-        if username is None:
-            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Unable to verify credentials")
-        existing_item = db.query(Product).filter(Product.id == id)
-        if not existing_item.first():
-            return {"message": f"No details found of {id} this id"}
-        existing_item.update(jsonable_encoder(item))
-        db.commit()
-        return {"message": f"Details for item id {id} successfully updated"}
+    if item:
+        payload = jwt.decode(token, setting.SECRET_KEY, algorithms=setting.ALGORITHM)
+        if payload['expiry'] >= time():
+            username = payload.get("sub")
+            if username is None:
+                raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Unable to verify credentials")
+            existing_item = db.query(Product).filter(Product.id == id)
+            if not existing_item.first():
+                return {"message": f"No details found of {id} this id"}
+            existing_item.update(jsonable_encoder(item))
+            db.commit()
+            return {"message": f"Details of id {id} Changed Successfully Update!!!"}
+        else:
+            return {"status":"failed", "message":"Token expire please re-login"}
     else:
-        return {"status":"failed", "message":"token expire please re-login"}
-
+        return {"status": "failed", "message": "All Field Required"}
 
 
 @router.delete('/product/delete', tags=['Product'])
