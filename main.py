@@ -1,4 +1,5 @@
 from fastapi import FastAPI
+from fastapi.staticfiles import StaticFiles
 from db_config.config import setting
 from db_config.database import engine
 from models import Base
@@ -27,6 +28,7 @@ app.add_middleware(
     allow_headers=['*']
 )
 
+app.mount("/static", StaticFiles(directory="static"), name="static")
 
 @app.post('/')
 async def home():

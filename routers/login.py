@@ -1,7 +1,7 @@
 import email
 from time import time
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
-from fastapi import APIRouter, Depends, HTTPException, status, Response, Request
+from fastapi import APIRouter, Body, Depends, HTTPException, status, Response, Request
 from sqlalchemy.orm import Session
 from db_config.database import get_db
 from models import User
@@ -17,7 +17,7 @@ router = APIRouter()
 
 
 @router.post('/login', tags=['User'])
-def login(response: Response, form: LoginUser, db: Session = Depends(get_db)):
+def login(response: Response, form: LoginUser = Body(default=None), db: Session = Depends(get_db)):
     user = db.query(User).filter(User.email == form.email).first()
     regex = r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b'
     if not user:

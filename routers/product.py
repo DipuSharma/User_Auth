@@ -1,6 +1,7 @@
+import os
 from time import time
-from fastapi import APIRouter, Body, Depends, HTTPException, Query, status
-from schemas import CreateProduct, ShowProduct
+from fastapi import APIRouter, Body, Depends, File, HTTPException, Query, UploadFile, status
+from schemas import CreateProduct
 from models import Product, User
 from sqlalchemy.orm import Session
 from db_config.database import get_db
@@ -104,4 +105,21 @@ async def delete_employee(id: int = Query(default=None), db: Session = Depends(g
         else:
             return {"message": "You are Not Authorized"}
     else:
-        return {"status":"failed", "message":"You are not authorized please re-login and try again"}        
+        return {"status":"failed", "message":"You are not authorized please re-login and try again"}
+
+@router.post("/create_file", tags=["File"])
+async def image(image: UploadFile = File(...)):
+    print(image.file)
+    # print('../'+os.path.isdir(os.getcwd()+"images"),"*************")
+    try:
+        os.mkdir("images")
+        print(os.getcwd())
+    except Exception as e:
+        print(e) 
+    file_name = os.getcwd()+"/images/"+image.filename.replace(" ", "-")
+    with open(file_name,'wb+') as f:
+        f.write(image.file.read())
+        f.close()
+    file = jsonable_encoder({"imagePath":file_name})
+    # new_image = await add_image(file)
+    return {"filename": file_name}       

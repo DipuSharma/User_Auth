@@ -20,14 +20,9 @@ class Settings:
     PASS = PASS
     TAGS = [
         {"name": "User", "description": "This is user routes"},
-        {"name": "Employee", "description": "This is employee routes"}
+        {"name": "Product", "description": "This is Product routes"},
+        {"name": "Default", "description": "This is Default routes"}
     ]
-    POSTGRES_USER = os.getenv("POSTGRES_USER")
-    POSTGRES_PASS = os.getenv("POSTGRES_PASSWORD")
-    POSTGRES_SERVER = os.getenv("POSTGRES_SERVER", "localhost")
-    POSTGRES_PORT = os.getenv("POSTGRES_PORT", 5432)
-    POSTGRES_DATABASE = os.getenv("POSTGRES_DATABASE", "mydb")
-    DATABASE_URL = f"postgresql://{POSTGRES_USER}:{POSTGRES_PASS}@{POSTGRES_SERVER}:{POSTGRES_PORT}/{POSTGRES_DATABASE}"
     SECRET_KEY = "Sv/w?/T@^CN8RR$O8^I7Tss6'j76it"
     ALGORITHM = ALGO
 

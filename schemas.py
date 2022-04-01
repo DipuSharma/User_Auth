@@ -2,6 +2,7 @@ import email
 from lib2to3.pgen2.token import OP
 from unicodedata import name
 from xmlrpc.client import Boolean, boolean
+from fastapi import File, UploadFile
 from pydantic import EmailStr, BaseModel
 from typing import List, Optional
 
@@ -28,7 +29,17 @@ class CreateProduct(BaseModel):
     description: Optional[str]
     price: float
     d_price: float
-    photo: Optional[str]
+
+class ForgatPassword(BaseModel):
+    email:str
+
+class VerifyOTP(BaseModel):
+    otp:str
+
+class ResetPassword(BaseModel):
+    token: str
+    password: str
+    confirm_password: str
 
 class ShowProduct(BaseModel):
     id: int
