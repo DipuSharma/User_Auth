@@ -1,7 +1,7 @@
 from fastapi import HTTPException, status, Response
 from passlib.context import CryptContext
 from db_config.config import setting
-from models import User
+from hash_model.models import User
 from jose import jwt
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")

@@ -1,14 +1,13 @@
-import email
 from time import time
-from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
+from fastapi.security import OAuth2PasswordBearer
 from fastapi import APIRouter, Body, Depends, HTTPException, status, Response, Request
 from sqlalchemy.orm import Session
 from db_config.database import get_db
-from models import User
-from hash import Hash
+from hash_model.models import User
+from hash_model.hash import Hash
 from jose import jwt
 from db_config.config import setting
-from schemas import LoginUser
+from hash_model.schemas import LoginUser
 import re
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl='/login')
