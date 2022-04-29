@@ -1,27 +1,36 @@
 from time import time
-from fastapi.security import OAuth2PasswordBearer
+from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from fastapi import APIRouter, Body, Depends, HTTPException, status, Response, Request
 from sqlalchemy.orm import Session
 from db_config.database import get_db
 from hash_model.models import User
 from hash_model.hash import Hash
 from jose import jwt
+from routers import celery
 from db_config.config import setting
 from hash_model.schemas import LoginUser
+from task import divide, image_upload,send_mail_task, sleepy
+from fastapi import BackgroundTasks
 import re
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl='/login')
 
 router = APIRouter()
 
+def trigger_query_wrapper(database, entity_name):
+    database1 = database
+    ent = entity_name
+    print("Database", database1 + '_' + ent, "Entity", ent)
+    # add logic for doing something with the value
+
 
 @router.post('/login', tags=['User'])
-def login(response: Response, form: LoginUser = Body(default=None), db: Session = Depends(get_db)):
+def login(form: LoginUser = Body(default=None), db: Session = Depends(get_db)):
     user = db.query(User).filter(User.email == form.email).first()
     regex = r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b'
     if not user:
         raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid username please enter valid username"
+            status_code=status.HTTP_401_UNAUTHORIZED, detail="User not register or verified email, Please do register first"
         )
     if not Hash.verify_password(form.password, user.password):
         raise HTTPException(
@@ -38,13 +47,16 @@ def login(response: Response, form: LoginUser = Body(default=None), db: Session 
         return {"error": "Invalid Email ID Please Enter Valid Email"}
         
     if Hash.verify_password(form.password, user.password):
-        data = {"sub": form.email, "expiry": time() + 43200 }
+        data = {"sub": form.email, "expiry": time() + 43200}
         jwt_token = jwt.encode(data, setting.SECRET_KEY, algorithm=setting.ALGORITHM)
-        response.set_cookie(key="access_token", value=f"Bearer {jwt_token}", httponly=True)
+        # response.set_cookie(key="access_token", value=f"Bearer {jwt_token}", httponly=True)
         return {"token": jwt_token, "user": form.email, "message":"Login Successfully"}
     else:
         raise HTTPException(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail="Please Enter Email and Password"
         )
 
-
+@router.get("/trigger_query", tags=['Default'])
+async def trigger_query(database:str, entity_name,  background_tasks: BackgroundTasks):
+    background_tasks.add_task(trigger_query_wrapper,database, entity_name)
+    return {"message": "Task triggered in the background"}

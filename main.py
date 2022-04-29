@@ -3,10 +3,10 @@ from fastapi.staticfiles import StaticFiles
 from db_config.config import setting
 from db_config.database import engine
 from hash_model.models import Base
-from routers import users, login, product, celery
+from routers import users, login, product, celery , cart
 from fastapi.middleware.cors import CORSMiddleware
 from routers.celery import create_celery
-from task import divide, image_upload
+
 
 Base.metadata.create_all(bind=engine)
 
@@ -33,16 +33,16 @@ app.add_middleware(
 
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
-@app.post('/')
-def home(image: UploadFile = File(default=None)):
-    image_upload.delay(image)
-    return {'status': "Success", "message": "Page Refresh"}
-
 # @app.post('/')
-# def home():
-#     divide.delay(20, 100)
+# def home(image: UploadFile = File(default=None)):
+#     send_mail_task.delay(image)
 #     return {'status': "Success", "message": "Page Refresh"}
+
+@app.post('/', tags=['Default'])
+async def home():
+    return {'status': "Success", "message": "Page Refresh"}
 
 app.include_router(login.router) 
 app.include_router(users.router)
 app.include_router(product.router)
+app.include_router(cart.router)

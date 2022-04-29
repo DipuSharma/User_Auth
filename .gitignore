@@ -1,6 +1,6 @@
 .env
 env/
 employee.db
-
+tempcode.txt
 images/
-static/
+pro_image/

@@ -1,5 +1,5 @@
 from time import time
-from fastapi import APIRouter, Body, Depends, Query, Response, HTTPException, status, Request
+from fastapi import APIRouter, Body, Depends, Query, File, Response, HTTPException, status, Request, UploadFile
 from sqlalchemy import true
 from hash_model.schemas import UserCreate, ForgatPassword, ResetPassword,VerifyOTP
 from hash_model.hash import Hash
@@ -33,6 +33,7 @@ conf = ConnectionConfig(
 )
 
 router = APIRouter()
+
 
 
 @router.post('/registration', tags=["User"])
@@ -102,6 +103,18 @@ async def registration(user: UserCreate = Body(default=None), db: Session = Depe
     else:
         return {"status": "failed", "message":"Password and Confirm Password Doesn't Match!!!!"}
 
+@router.post("/profile/", tags=["User"])
+async def image_upload(file: UploadFile = File(...), db: Session = Depends(get_db)):
+    try:
+        os.mkdir("static/images")
+    except Exception as e: 
+        file_name = os.getcwd()+"/static/images/"+file.filename.replace(" ", "-")
+        with open(file_name,'wb+') as f:
+            f.write(file.file.read())
+            f.close()
+        return {"filename": file_name}       
+
+
 @router.put("/verify-email", tags=["User"])
 async def email_verification(token: str = Query(default=None), db: Session = Depends(get_db)):
     if token:
@@ -119,6 +132,7 @@ async def email_verification(token: str = Query(default=None), db: Session = Dep
             return {"status":"failed", "message":"token expires please re-registration"}
     else:
         return {"status":"failed", "message":"Token Not Found"}
+
 
 @router.post("/forgat-password", tags=["User"])
 async def forgat_pass(user:ForgatPassword = Body(default=None), db: Session = Depends(get_db)):

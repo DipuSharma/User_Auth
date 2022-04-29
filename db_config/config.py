@@ -22,7 +22,8 @@ class Settings:
     TAGS = [
         {"name": "User", "description": "This is user routes"},
         {"name": "Product", "description": "This is Product routes"},
-        {"name": "Default", "description": "This is Default routes"}
+        {"name": "Default", "description": "This is Default routes"},
+        {"name": "Cart", "description": "This is Cart routes"}
     ]
     SECRET_KEY = "Sv/w?/T@^CN8RR$O8^I7Tss6'j76it"
     ALGORITHM = ALGO
