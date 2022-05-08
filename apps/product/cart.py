@@ -6,7 +6,7 @@ from sqlalchemy.orm import Session
 from db_config.database import get_db
 from typing import List
 from fastapi.encoders import jsonable_encoder
-from routers.login import oauth2_scheme
+from apps.auth.login import oauth2_scheme
 from jose import jwt
 from db_config.config import setting
 from pathlib import Path

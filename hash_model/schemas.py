@@ -1,6 +1,6 @@
 import email
 from lib2to3.pgen2.token import OP
-from unicodedata import name
+from unicodedata import category, name
 from xmlrpc.client import Boolean, boolean
 from fastapi import File, Form, UploadFile
 from pydantic import EmailStr, BaseModel, HttpUrl
@@ -57,9 +57,10 @@ class CreateProduct(BaseModel):
         orm_mode: True
 
 class SearchProduct(BaseModel):
-    product_name: Optional[str]
-    size: Optional[str]
-    price: Optional[float]
+    product_name: Optional[str] = None
+    size: Optional[str] = None
+    price: Optional[float] = None
+    category: Optional[str] = None
     class Config:
         orm_mode: True
     

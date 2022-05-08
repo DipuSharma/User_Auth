@@ -1,11 +1,13 @@
 from fastapi import FastAPI, File, UploadFile
 from fastapi.staticfiles import StaticFiles
+from apps.auth import login, users, shopkeeper
+from apps.product import cart, product
 from db_config.config import setting
 from db_config.database import engine
 from hash_model.models import Base
-from routers import users, login, product, celery , cart
+from apps.celery import celery
 from fastapi.middleware.cors import CORSMiddleware
-from routers.celery import create_celery
+from apps.celery.celery import create_celery
 
 
 Base.metadata.create_all(bind=engine)
@@ -44,5 +46,6 @@ async def home():
 
 app.include_router(login.router) 
 app.include_router(users.router)
+app.include_router(shopkeeper.router)
 app.include_router(product.router)
 app.include_router(cart.router)

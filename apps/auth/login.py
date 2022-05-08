@@ -6,7 +6,7 @@ from db_config.database import get_db
 from hash_model.models import User
 from hash_model.hash import Hash
 from jose import jwt
-from routers import celery
+from apps.celery import celery
 from db_config.config import setting
 from hash_model.schemas import LoginUser
 from task import divide, image_upload,send_mail_task, sleepy
