@@ -1,5 +1,11 @@
+import re
+import os
+import random
+from urllib import response
+import pdfkit
 from time import time
-from fastapi import APIRouter, Body, Depends, Query, Response, HTTPException, status, Request
+from fastapi.responses import FileResponse, StreamingResponse
+from fastapi import APIRouter, Body, Depends, Query, File, HTTPException, Response, status, UploadFile
 from sqlalchemy import true
 from hash_model.schemas import UserCreate, ForgatPassword, ResetPassword,VerifyOTP
 from hash_model.hash import Hash
@@ -11,9 +17,8 @@ from hash_model.models import User, OTP
 from db_config.config import setting
 from jose import jwt
 from dotenv import load_dotenv
-import re
-import random
-import os
+from apps.auth.login import oauth2_scheme
+
 
 load_dotenv()
 EMAIL = os.getenv("EMAIL")
@@ -34,12 +39,11 @@ conf = ConnectionConfig(
 
 router = APIRouter()
 
-
 @router.post('/registration', tags=["User"])
 async def registration(user: UserCreate = Body(default=None), db: Session = Depends(get_db)):
     data = db.query(User).filter(User.email == user.email).first()
     if user.password == user.confirm_password:
-        user = User(name=user.name, email=user.email, password=Hash.get_hash_pass(user.password))
+        user = User(name=user.name, email=user.email, type=user.user_type,password=Hash.get_hash_pass(user.password))
         regex = r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b'
         if not re.fullmatch(regex, user.email):
             return {"status":"failed","message": "Invalid Email ID Please Enter Valid Email"}
@@ -49,48 +53,48 @@ async def registration(user: UserCreate = Body(default=None), db: Session = Depe
                 jwt_token = jwt.encode(data, setting.SECRET_KEY, algorithm=setting.ALGORITHM)
                 # response.set_cookie(key="access_token", value=f"Bearer {jwt_token}", httponly=True)
                 # print("Set Cookie")
-                template = f"""
-                    <!Doctype html>
-                    <html>
-                        <head>
-                            <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
-                            <style>
+                # template = f"""
+                #     <!Doctype html>
+                #     <html>
+                #         <head>
+                #             <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+                #             <style>
 
-                            </style>
-                        </head>
-                        <body>
-                            <div class="container">
-                                <div class="row">
-                                    <div class="col-md-3"></div>
-                                    <div class="col-md-6">
-                                        <h2>Account Verification</h2>
-                                        <br>
-                                        <p>Thanks for Choosing Myapp, please click on the given below Button </p>
-                                        <a style="margin-top:1rem; padding:1rem; border-radius:0.5rem; font-size:1rem;
-                                        text-decoration:none;
-                                        background: red" href="http://localhost:3000/verification?token={jwt_token}">
-                                        Verify Your Mail
-                                        </a>
-                                        <p>Please kidly ignore this email if you did not register for My app and nothing will happened.
-                                        Thanks</p>
-                                    </div>
-                                    <div class="col-md-3"></div>
-                                </div>
-                            </div>
-                        </body>
-                    </html>
-                    """
-                message = MessageSchema(
-                    subject="MyApp Account Verification Email",
-                    recipients=[user.email],  # List of Recipients
-                    body=template,
-                    subtype="html"
-                )
-                fm = FastMail(conf)
+                #             </style>
+                #         </head>
+                #         <body>
+                #             <div class="container">
+                #                 <div class="row">
+                #                     <div class="col-md-3"></div>
+                #                     <div class="col-md-6">
+                #                         <h2>Account Verification</h2>
+                #                         <br>
+                #                         <p>Thanks for Choosing Myapp, please click on the given below Button </p>
+                #                         <a style="margin-top:1rem; padding:1rem; border-radius:0.5rem; font-size:1rem;
+                #                         text-decoration:none;
+                #                         background: red" href="http://localhost:3000/verification?token={jwt_token}">
+                #                         Verify Your Mail
+                #                         </a>
+                #                         <p>Please kidly ignore this email if you did not register for My app and nothing will happened.
+                #                         Thanks</p>
+                #                     </div>
+                #                     <div class="col-md-3"></div>
+                #                 </div>
+                #             </div>
+                #         </body>
+                #     </html>
+                #     """
+                # message = MessageSchema(
+                #     subject="MyApp Account Verification Email",
+                #     recipients=[user.email],  # List of Recipients
+                #     body=template,
+                #     subtype="html"
+                # )
+                # fm = FastMail(conf)
                 db.add(user)
                 db.commit()
                 db.refresh(user)
-                await fm.send_message(message)
+                # await fm.send_message(message)
                 return {"message": "Please Verify your Gmail, verification link send on your email account", "data": jwt_token}
             elif data.email == user.email:
                 raise HTTPException(
@@ -101,6 +105,17 @@ async def registration(user: UserCreate = Body(default=None), db: Session = Depe
             return {"status":"failed","message":"Email Already Exists Please try to another email id"}
     else:
         return {"status": "failed", "message":"Password and Confirm Password Doesn't Match!!!!"}
+
+@router.post("/profile/", tags=["User"])
+async def image_upload(file: UploadFile = File(...), db: Session = Depends(get_db)):
+    try:
+        os.mkdir("static/images")
+    except Exception as e: 
+        file_name = os.getcwd()+"/static/images/"+file.filename.replace(" ", "-")
+        with open(file_name,'wb+') as f:
+            f.write(file.file.read())
+            f.close()
+        return {"filename": file_name}       
 
 @router.put("/verify-email", tags=["User"])
 async def email_verification(token: str = Query(default=None), db: Session = Depends(get_db)):
@@ -166,7 +181,6 @@ async def forgat_pass(user:ForgatPassword = Body(default=None), db: Session = De
     else:
         return {"status":"failed", "message":"Details Not Found"}
    
-
 @router.put("/reset-password", tags=["User"])
 async def reset_pass(user: ResetPassword = Body(default=None), db: Session = Depends(get_db)):
     if user.token:
@@ -190,24 +204,57 @@ async def reset_pass(user: ResetPassword = Body(default=None), db: Session = Dep
     else:
         return {"status":"failed", "message":"Details Not Found"}
 
-
 @router.post("/verify-otp", tags=["User"])
 async def verify_otp(user:VerifyOTP = Body(default=None), db: Session = Depends(get_db)):
-    if user:
-        data = db.query(OTP).filter(OTP.otp == user.otp).first()
-        existing_data = db.query(OTP).filter(OTP.otp == user.otp)
-        if not data:
-            return {"status":"failed", "message":"Invalid OTP please enter valid Otp"}
-        otp_db_time = float(data.exp_time)
-        num = 1
-        if data.otp == user.otp and otp_db_time >= time():
-            data = {"sub": data.email, "expiry":time() + 600}
-            jwt_token = jwt.encode(data, setting.SECRET_KEY, algorithm=setting.ALGORITHM)
-            existing_data.update({"status": True, "count_otp": num })
-            db.commit()
-            return {"status":"success", "token": jwt_token}
-        else:
-            existing_data.update({"count_otp": num })
-            db.commit()
-            return {"status": "failed", "msg":"Otp Expired"}
-    return {"status":"Success", "message":"Please type Otp"}
+    if not user:
+        raise HTTPException(status_code=404, detail="Otp not found")
+    data = db.query(OTP).filter(OTP.otp == user.otp).first()
+    existing_data = db.query(OTP).filter(OTP.otp == user.otp)
+    if not data:
+        return {"status":"failed", "message":"Invalid OTP please enter valid Otp"}
+    otp_db_time = float(data.exp_time)
+    num = 1
+    if data.otp == user.otp and otp_db_time >= time():
+        data = {"sub": data.email, "expiry":time() + 600}
+        jwt_token = jwt.encode(data, setting.SECRET_KEY, algorithm=setting.ALGORITHM)
+        existing_data.update({"status": True, "count_otp": num })
+        db.commit()
+        return {"status":"success", "token": jwt_token}
+    else:
+        existing_data.update({"count_otp": num })
+        db.commit()
+        return {"status": "failed", "msg":"Otp Expired"}
+
+@router.get("/me", tags=['User'])
+async def curren_user(db:Session = Depends(get_db), token: str = Depends(oauth2_scheme)):
+    verified = jwt.decode(token, setting.SECRET_KEY,algorithms=setting.ALGORITHM)
+    if verified['expiry'] >= time():
+        user = db.query(User).filter(User.email == verified['sub'] and User.type == verified['type']).first()
+        if not user:
+            raise HTTPException(status_code=404, detail="Address not found of this user")
+        print(user.address)
+        return {"status":"success", "data":user}
+    else:
+        return {"status": "failed", "message": "You are not authorized"}
+
+
+@router.get("/generate-pdf", tags=["User"])
+async def generate_pdf(
+    # db:Session = Depends(get_db), 
+    # token: str = Depends(oauth2_scheme)
+    ):
+    # verified = jwt.decode(token, setting.SECRET_KEY,algorithms=setting.ALGORITHM)
+    # if verified['expiry'] >= time():
+    #     user = db.query(User).filter(User.email == verified['sub'] and User.type == verified['type']).first()
+    #     if not user:
+    #         raise HTTPException(status_code=404, detail="Address not found of this user")
+        
+    # else:
+    #     return {"status": "failed", "message": "You are not authorized"}
+    path_dir = os.getcwd()
+    file_data = os.path.join(path_dir, "static/view/pdf.html")
+    pdf = pdfkit.from_url(file_data, False)
+    response = Response(pdf)
+    response.headers['Content-Type'] = 'application/pdf'
+    response.headers["Content-Disposition"] = f"attachment; filename=demonew.pdf"
+    return response

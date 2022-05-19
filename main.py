@@ -1,12 +1,17 @@
 from fastapi import FastAPI, File, UploadFile
 from fastapi.staticfiles import StaticFiles
+from apps.Address import address
+from apps.Shop import shop
+from apps.Users import users
+from apps.auth import login
+from apps.product import cart, product
 from db_config.config import setting
 from db_config.database import engine
 from hash_model.models import Base
-from routers import users, login, product, celery
+from apps.celery import celery
 from fastapi.middleware.cors import CORSMiddleware
-from routers.celery import create_celery
-from task import divide, image_upload
+from apps.celery.celery import create_celery
+
 
 Base.metadata.create_all(bind=engine)
 
@@ -21,6 +26,7 @@ app = FastAPI(title=setting.TITLE,
               docs_url="/dipu")
 
 app.celery_app = create_celery()
+
 origins = ["http://localhost:3000", "http://localhost:8080"]
 
 app.add_middleware(
@@ -33,16 +39,13 @@ app.add_middleware(
 
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
-@app.post('/')
-def home(image: UploadFile = File(default=None)):
-    image_upload.delay(image)
+@app.get('/', tags=['Home'])
+async def home():
     return {'status': "Success", "message": "Page Refresh"}
-
-# @app.post('/')
-# def home():
-#     divide.delay(20, 100)
-#     return {'status': "Success", "message": "Page Refresh"}
 
 app.include_router(login.router) 
 app.include_router(users.router)
 app.include_router(product.router)
+app.include_router(cart.router)
+app.include_router(address.router)
+app.include_router(shop.router)

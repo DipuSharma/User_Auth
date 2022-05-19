@@ -30,16 +30,16 @@ def sleepy(duration):
     return None
 
 
-# @shared_task(serializer='json')
-# async def send_mail_task():
-#     message = MessageSchema(
-#         subject="MyApp Account Verification Email",
-#         recipients=["sdipu231@gmail.com"],  # List of Recipients
-#         body="Hello Dipu Your welcome",
-#     )
-#     fm = FastMail(conf)
-#     fm.send_message(message)
-#     return None
+@shared_task()
+def send_mail_task():
+    message = MessageSchema(
+        subject="MyApp Account Verification Email",
+        recipients=[EMAIL],  # List of Recipients
+        body="Hello Dipu Your welcome",
+    )
+    fm = FastMail(conf)
+    fm.send_message(message)
+    return None
 
 @shared_task
 def divide(x, y):
@@ -56,5 +56,4 @@ def image_upload(x):
             f.write(x.file.read())
             f.close()
         file = jsonable_encoder({"imagePath":file_name})
-        # new_image = await add_image(file)
-        return {"filename": file_name}  
+        return {"filename": file_name}
