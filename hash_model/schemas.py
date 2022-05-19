@@ -8,6 +8,7 @@ from typing import List, Optional
 
 # User Schema
 class UserCreate(BaseModel):
+    user_type: Optional[str]
     name: str
     email: EmailStr
     password: str
@@ -17,6 +18,7 @@ class UserCreate(BaseModel):
         orm_mode: True
 
 class LoginUser(BaseModel):
+    user_type: str
     email: EmailStr
     password: str
 
@@ -36,6 +38,22 @@ class ResetPassword(BaseModel):
     token: str
     password: str
     confirm_password: str
+
+#  Shopkeeper Schema
+class AddressCreate(BaseModel):
+    shop_name: Optional[str]
+    register_number: Optional[str]
+    gst_number: Optional[str]
+    mobile_number: Optional[str]
+    address_line_1: Optional[str]
+    address_line_2: Optional[str]
+    country_name: Optional[str]
+    state: Optional[str]
+    district: Optional[str]
+    zipcode:Optional[str]
+
+    class Config:
+        orm_mode: True
 
 #  Product Schema
 
@@ -63,8 +81,17 @@ class SearchProduct(BaseModel):
     category: Optional[str] = None
     class Config:
         orm_mode: True
-    
 
+class ShowShopSchema(BaseModel):
+    shop_name: Optional[str]
+    address:Optional[str]
+    email: Optional[str]
+    mobile_number:Optional[str]
+    gst_number:Optional[str]
+
+    class Config:
+        orm_mode: True
+    
 class ShowProduct(BaseModel):
     id: int
     owner_id: int
