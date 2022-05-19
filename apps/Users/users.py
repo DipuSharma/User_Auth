@@ -1,8 +1,11 @@
 import re
 import os
 import random
+from urllib import response
+import pdfkit
 from time import time
-from fastapi import APIRouter, Body, Depends, Query, File, Response, HTTPException, status, Request, UploadFile
+from fastapi.responses import FileResponse, StreamingResponse
+from fastapi import APIRouter, Body, Depends, Query, File, HTTPException, Response, status, UploadFile
 from sqlalchemy import true
 from hash_model.schemas import UserCreate, ForgatPassword, ResetPassword,VerifyOTP
 from hash_model.hash import Hash
@@ -233,3 +236,25 @@ async def curren_user(db:Session = Depends(get_db), token: str = Depends(oauth2_
         return {"status":"success", "data":user}
     else:
         return {"status": "failed", "message": "You are not authorized"}
+
+
+@router.get("/generate-pdf", tags=["User"])
+async def generate_pdf(
+    # db:Session = Depends(get_db), 
+    # token: str = Depends(oauth2_scheme)
+    ):
+    # verified = jwt.decode(token, setting.SECRET_KEY,algorithms=setting.ALGORITHM)
+    # if verified['expiry'] >= time():
+    #     user = db.query(User).filter(User.email == verified['sub'] and User.type == verified['type']).first()
+    #     if not user:
+    #         raise HTTPException(status_code=404, detail="Address not found of this user")
+        
+    # else:
+    #     return {"status": "failed", "message": "You are not authorized"}
+    path_dir = os.getcwd()
+    file_data = os.path.join(path_dir, "static/view/pdf.html")
+    pdf = pdfkit.from_url(file_data, False)
+    response = Response(pdf)
+    response.headers['Content-Type'] = 'application/pdf'
+    response.headers["Content-Disposition"] = f"attachment; filename=demonew.pdf"
+    return response
