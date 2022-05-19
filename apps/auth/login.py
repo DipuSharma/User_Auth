@@ -24,37 +24,37 @@ def trigger_query_wrapper(database, entity_name):
     # add logic for doing something with the value
 
 
-@router.post('/login', tags=['User'])
-def login(form: LoginUser = Body(default=None), db: Session = Depends(get_db)):
-    user = db.query(User).filter(User.email == form.email).first()
+@router.post('/login', tags=['Auth'])
+async def login(form: LoginUser = Body(default=None), db: Session = Depends(get_db)):
+    user = db.query(User).filter(User.email == form.email, User.type == form.user_type).first()
     regex = r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b'
     if not user:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED, detail="User not register or verified email, Please do register first"
-        )
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED, detail="User not verified email or user type not match with email"
+            )
     if not Hash.verify_password(form.password, user.password):
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid Password please enter valid password"
-        )
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid Password please enter valid password"
+            )
     if user.is_active == False:
-        existing_item = db.query(User).filter(User.email == user.email)
-        existing_item.delete()
-        db.commit()
-        return {"status":"failed", "message":"You are not verified user please do re-registration"}
+            existing_item = db.query(User).filter(User.email == user.email)
+            existing_item.delete()
+            db.commit()
+            return {"status":"failed", "message":"You are not verified user please do re-registration"}
     if len(form.password) < 6:
-        return {"error": "Password is less than 6 Character, Please enter Password more thane 5 Character"}
+            return {"error": "Password is less than 6 Character, Please enter Password more thane 5 Character"}
     if not re.fullmatch(regex, form.email):
-        return {"error": "Invalid Email ID Please Enter Valid Email"}
-        
+            return {"error": "Invalid Email ID Please Enter Valid Email"}
+
     if Hash.verify_password(form.password, user.password):
-        data = {"sub": form.email, "expiry": time() + 43200}
-        jwt_token = jwt.encode(data, setting.SECRET_KEY, algorithm=setting.ALGORITHM)
-        # response.set_cookie(key="access_token", value=f"Bearer {jwt_token}", httponly=True)
-        return {"token": jwt_token, "user": form.email, "message":"Login Successfully"}
+            data = {"type":form.user_type,"sub": form.email, "expiry": time() + 43200}
+            jwt_token = jwt.encode(data, setting.SECRET_KEY, algorithm=setting.ALGORITHM)
+            # response.set_cookie(key="access_token", value=f"Bearer {jwt_token}", httponly=True)
+            return {"token": jwt_token, "user": form.email, "message":"Login Successfully"}
     else:
-        raise HTTPException(
-            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail="Please Enter Email and Password"
-        )
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail="Please Enter Email and Password"
+            )
 
 @router.get("/trigger_query", tags=['Default'])
 async def trigger_query(database:str, entity_name,  background_tasks: BackgroundTasks):

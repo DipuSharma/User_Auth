@@ -1,4 +1,4 @@
-
+from operator import and_
 import os
 import io
 import csv
@@ -16,6 +16,7 @@ from sqlalchemy import desc, or_
 from hash_model.schemas import CreateProduct, SearchProduct
 from hash_model.models import Product, User
 from sqlalchemy.orm import Session
+from sqlalchemy import and_
 from db_config.database import get_db
 from typing import List, Optional
 from fastapi.encoders import jsonable_encoder
@@ -48,10 +49,10 @@ async def create_emp(p_name: str = Form(...), description: str = Form(...), pric
         verified = jwt.decode(token, setting.SECRET_KEY,
                               algorithms=setting.ALGORITHM)
         if verified['expiry'] >= time():
-            user = db.query(User).filter(User.email == verified['sub']).first()
-            e_name = db.query(Product).filter(
-                Product.product_name == p_name).first()
-            if not e_name and user:
+            user = db.query(User).filter(User.email == verified['sub'] and User.type == verified['type']).first()
+            print(user.id)
+            e_name = db.query(Product).filter(and_(Product.shop_id == user.id, Product.product_name == p_name)).first()
+            if not e_name:
                 owner_id = user.id
                 data = Product(product_name=p_name, description=description, price=price, d_price=d_price, size=size, category=categ,
                                shop_id=owner_id, images=file_name)
@@ -68,7 +69,7 @@ async def create_emp(p_name: str = Form(...), description: str = Form(...), pric
 # Get User All Product
 
 
-@router.get('/produc/user/all', tags=['Product'])
+@router.get('/product/user/all', tags=['Product'])
 async def all_product(db: Session = Depends(get_db), token: str = Depends(oauth2_scheme)):
     if token:
         verified = jwt.decode(token, setting.SECRET_KEY,

@@ -20,11 +20,13 @@ class Settings:
     EMAIL = EMAIL
     PASS = PASS
     TAGS = [
+        {"name": "Auth", "description": "This is Authentication Routes"},
         {"name": "User", "description": "This is user routes"},
         {"name": "Product", "description": "This is Product routes"},
         {"name": "Default", "description": "This is Default routes"},
         {"name": "Cart", "description": "This is Cart routes"},
-        {"name": "Shop", "description": "This is Shopkeeper Routes"}
+        {"name": "Shop", "description": "This is Shopkeeper Routes"},
+        {"name": "Home", "description": "This is Home Routes"}
     ]
     SECRET_KEY = "Sv/w?/T@^CN8RR$O8^I7Tss6'j76it"
     ALGORITHM = ALGO
