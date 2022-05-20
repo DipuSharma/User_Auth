@@ -8,9 +8,9 @@ from apps.product import cart, product
 from db_config.config import setting
 from db_config.database import engine
 from hash_model.models import Base
-from apps.celery import celery
+from apps.Celery import celery
 from fastapi.middleware.cors import CORSMiddleware
-from apps.celery.celery import create_celery
+# from apps.celery.celery import create_celery
 
 
 Base.metadata.create_all(bind=engine)
@@ -25,7 +25,7 @@ app = FastAPI(title=setting.TITLE,
               openapi_tags=setting.TAGS,
               docs_url="/dipu")
 
-app.celery_app = create_celery()
+
 
 origins = ["http://localhost:3000", "http://localhost:8080"]
 
