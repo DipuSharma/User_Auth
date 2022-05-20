@@ -61,4 +61,4 @@ def image_upload(x):
             file = jsonable_encoder({"imagePath":file_name})
             return {"filename": file_name}
     except Exception as e: 
-        pass
+        return None
