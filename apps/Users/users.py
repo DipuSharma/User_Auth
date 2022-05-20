@@ -7,7 +7,7 @@ from time import time
 from fastapi.responses import FileResponse, StreamingResponse
 from fastapi import APIRouter, Body, Depends, Query, File, HTTPException, Response, status, UploadFile
 from sqlalchemy import true
-from hash_model.schemas import UserCreate, ForgatPassword, ResetPassword,VerifyOTP
+from hash_model.schemas import UserCreate, ForgatPassword, ResetPassword, VerifyOTP, CeleryTest
 from hash_model.hash import Hash
 from sqlalchemy.orm import Session
 from fastapi_mail import FastMail, MessageSchema, ConnectionConfig
@@ -19,7 +19,7 @@ from jose import jwt
 from apps.Celery.celery import create_celery
 from dotenv import load_dotenv
 from apps.auth.login import oauth2_scheme
-from apps.Users.tasks import divide, image_upload, send_mail_task, sleepy
+from apps.Users.tasks import addition, image_upload
 
 load_dotenv()
 EMAIL = os.getenv("EMAIL")
@@ -235,9 +235,12 @@ async def curren_user(db:Session = Depends(get_db), token: str = Depends(oauth2_
         return {"status": "failed", "message": "You are not authorized"}
 
 @router.post("/test-celery", tags=["User"])
-async def celery_test():
-    divide.delay(3, 4)
-    return {"status": "success", "message":"your celery configuration success"}
+async def celery_test(data: CeleryTest = Depends()):
+    if data:
+        addition.delay(data.Num1, data.Num1)
+        return {"status": "success", "message":"your celery configuration success"}
+    else:
+        return {"status":"failed", "message":"Data not found"} 
 
 @router.get("/generate-pdf", tags=["User"])
 async def generate_pdf(

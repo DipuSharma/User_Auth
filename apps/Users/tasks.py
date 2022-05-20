@@ -30,20 +30,9 @@ def sleepy(duration):
     sleep(duration)
     return None
 
-
-@shared_task()
-def send_mail_task():
-    message = MessageSchema(
-        subject="MyApp Account Verification Email",
-        recipients=[EMAIL],  # List of Recipients
-        body="Hello Dipu Your welcome",
-    )
-    fm = FastMail(conf)
-    fm.send_message(message)
-    return None
-
 @shared_task
-def divide(x, y):
+def addition(x, y):
+    print("Number 1", x, "Number 2", y)
     return x + y
 
 @shared_task
