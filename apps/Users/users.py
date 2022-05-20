@@ -16,9 +16,10 @@ from db_config.database import get_db
 from hash_model.models import User, OTP
 from db_config.config import setting
 from jose import jwt
+from apps.Celery.celery import create_celery
 from dotenv import load_dotenv
 from apps.auth.login import oauth2_scheme
-
+from apps.Users.tasks import divide, image_upload, send_mail_task, sleepy
 
 load_dotenv()
 EMAIL = os.getenv("EMAIL")
@@ -38,6 +39,8 @@ conf = ConnectionConfig(
 )
 
 router = APIRouter()
+router.celery_app = create_celery()
+
 
 @router.post('/registration', tags=["User"])
 async def registration(user: UserCreate = Body(default=None), db: Session = Depends(get_db)):
@@ -107,15 +110,9 @@ async def registration(user: UserCreate = Body(default=None), db: Session = Depe
         return {"status": "failed", "message":"Password and Confirm Password Doesn't Match!!!!"}
 
 @router.post("/profile/", tags=["User"])
-async def image_upload(file: UploadFile = File(...), db: Session = Depends(get_db)):
-    try:
-        os.mkdir("static/images")
-    except Exception as e: 
-        file_name = os.getcwd()+"/static/images/"+file.filename.replace(" ", "-")
-        with open(file_name,'wb+') as f:
-            f.write(file.file.read())
-            f.close()
-        return {"filename": file_name}       
+async def image_upload_file(file: UploadFile = File(...), db: Session = Depends(get_db)):
+    image_upload.delay(file)
+    return {"status":"success", "message":"file Uploaded success"}      
 
 @router.put("/verify-email", tags=["User"])
 async def email_verification(token: str = Query(default=None), db: Session = Depends(get_db)):
@@ -237,6 +234,10 @@ async def curren_user(db:Session = Depends(get_db), token: str = Depends(oauth2_
     else:
         return {"status": "failed", "message": "You are not authorized"}
 
+@router.post("/test-celery", tags=["User"])
+async def celery_test():
+    divide.delay(3, 4)
+    return {"status": "success", "message":"your celery configuration success"}
 
 @router.get("/generate-pdf", tags=["User"])
 async def generate_pdf(

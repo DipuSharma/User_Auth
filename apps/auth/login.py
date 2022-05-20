@@ -6,23 +6,24 @@ from db_config.database import get_db
 from hash_model.models import User
 from hash_model.hash import Hash
 from jose import jwt
-from apps.celery import celery
+from apps.Celery import celery
+from apps.Celery.celery import create_celery
 from db_config.config import setting
 from hash_model.schemas import LoginUser
-from task import divide, image_upload,send_mail_task, sleepy
+# from apps.auth.tasks import divide, image_upload,send_mail_task, sleepy
 from fastapi import BackgroundTasks
 import re
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl='/login')
 
 router = APIRouter()
+router.celery_app = create_celery()
 
 def trigger_query_wrapper(database, entity_name):
     database1 = database
     ent = entity_name
     print("Database", database1 + '_' + ent, "Entity", ent)
     # add logic for doing something with the value
-
 
 @router.post('/login', tags=['Auth'])
 async def login(form: LoginUser = Body(default=None), db: Session = Depends(get_db)):
