@@ -1,27 +1,7 @@
-from celery import shared_task
-from time import sleep
 import os
-from fastapi_mail import FastMail, MessageSchema, ConnectionConfig
-from fastapi import UploadFile, File
+from time import sleep
+from celery import shared_task
 from fastapi.encoders import jsonable_encoder
-from dotenv import load_dotenv
-load_dotenv()
-EMAIL = os.getenv("EMAIL")
-PASS = os.getenv("PASS")
-
-
-conf = ConnectionConfig(
-    MAIL_USERNAME=EMAIL,
-    MAIL_PASSWORD=PASS,
-    MAIL_FROM=EMAIL,
-    MAIL_PORT=587,
-    MAIL_SERVER="smtp.gmail.com",
-    MAIL_TLS=True,
-    MAIL_SSL=False,
-    USE_CREDENTIALS=True,
-    VALIDATE_CERTS=True
-)
-
 
 @shared_task
 def sleepy(duration):

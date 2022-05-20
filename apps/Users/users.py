@@ -111,6 +111,8 @@ async def registration(user: UserCreate = Body(default=None), db: Session = Depe
 
 @router.post("/profile/", tags=["User"])
 async def image_upload_file(file: UploadFile = File(...), db: Session = Depends(get_db)):
+    if not file.filename:
+        return {"status":"failed", "message":"file not found"}
     image_upload.delay(file)
     return {"status":"success", "message":"file Uploaded success"}      
 
