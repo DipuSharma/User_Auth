@@ -44,7 +44,7 @@ def send_mail_task():
 
 @shared_task
 def divide(x, y):
-    sleep.delay(5)
+    sleep(5)
     return x + y
 
 @shared_task
