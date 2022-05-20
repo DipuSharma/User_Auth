@@ -4,3 +4,5 @@ employee.db
 tempcode.txt
 images/
 pro_image/
+__pycache__/
+.idea/
