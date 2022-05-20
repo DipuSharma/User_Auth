@@ -1,5 +1,3 @@
-from http.client import HTTPException
-from sre_constants import SUCCESS
 from celery import shared_task
 from time import sleep
 import os
@@ -31,9 +29,17 @@ def sleepy(duration):
     return None
 
 @shared_task
-def addition(x, y):
-    print("Number 1", x, "Number 2", y)
-    return x + y
+def operation(x, y, o):
+    sleep(2)
+    if o == "add":
+        c = x + y
+    if o == "sub":
+        c = x - y
+    if o == "multi":
+        c = x * y
+    if o == "devide":
+        c = x / y
+    return c
 
 @shared_task
 def image_upload(x):

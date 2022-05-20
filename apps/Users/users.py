@@ -19,7 +19,7 @@ from jose import jwt
 from apps.Celery.celery import create_celery
 from dotenv import load_dotenv
 from apps.auth.login import oauth2_scheme
-from apps.Users.tasks import addition, image_upload
+from apps.Users.tasks import operation, image_upload
 
 load_dotenv()
 EMAIL = os.getenv("EMAIL")
@@ -237,7 +237,7 @@ async def curren_user(db:Session = Depends(get_db), token: str = Depends(oauth2_
 @router.post("/test-celery", tags=["User"])
 async def celery_test(data: CeleryTest = Depends()):
     if data:
-        addition.delay(data.Num1, data.Num1)
+        operation.delay(data.Num1, data.Num2, data.Operation)
         return {"status": "success", "message":"your celery configuration success"}
     else:
         return {"status":"failed", "message":"Data not found"} 

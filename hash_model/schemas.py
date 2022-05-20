@@ -40,9 +40,9 @@ class ResetPassword(BaseModel):
     confirm_password: str
 
 class CeleryTest(BaseModel):
-    Num1: int
-    Num2: int
-
+    Num1: float
+    Num2: float
+    Operation: str
 
 #  Shopkeeper Schema
 class AddressCreate(BaseModel):
