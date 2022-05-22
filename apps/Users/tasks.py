@@ -1,7 +1,14 @@
 import os
 from time import sleep
+import asyncio
 from celery import shared_task
 from fastapi.encoders import jsonable_encoder
+from celery.utils.log import get_task_logger
+from tqdm import tqdm, trange
+
+from apps.product.product import BASE_DIR
+
+logger = get_task_logger(__name__)
 
 @shared_task
 def sleepy(duration):
@@ -19,20 +26,29 @@ def operation(x, y, o):
         c = x * y
     if o == "devide":
         c = x / y
+    logger.info('Adds {0} + {1}'.format(x, y))
     return c
 
 @shared_task
-def image_upload(x):
-    try:
-        dir_path = os.getcwd()+"/static/images/"
-        if dir_path is None:
-            os.mkdir("static/images")
-        else:
-            file_name = os.getcwd()+"/static/images/"+x.filename.replace(" ", "-")
-            with open(file_name,'wb+') as f:
-                f.write(x.file.read())
-                f.close()
-            file = jsonable_encoder({"imagePath":file_name})
-            return {"filename": file_name}
-    except Exception as e: 
-        return None
+def any_file_upload(files):
+    File_DIR = './static/files/'
+    if not os.path.exists(File_DIR):
+        os.makedirs(File_DIR)
+    file_name = File_DIR + files.filename
+    print("Hello Dipu")
+    with open(file_name,'wb+') as f:
+        f.write(files.file.read())
+        f.close()
+    return True
+
+@shared_task
+def image_upload(files):
+    File_DIR = './static/images/'
+    if not os.path.exists(File_DIR):
+        os.makedirs(File_DIR)
+    file_name = File_DIR + files.filename
+    print("Hello Dipu")
+    with open(file_name,'wb+') as f:
+        f.write(files.file.read())
+        f.close()
+    return True

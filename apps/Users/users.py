@@ -2,11 +2,14 @@ import re
 import os
 import random
 from urllib import response
+import aiofiles
 import pdfkit
 from time import time
+from typing import List
 from fastapi.responses import FileResponse, StreamingResponse
 from fastapi import APIRouter, Body, Depends, Query, File, HTTPException, Response, status, UploadFile
 from sqlalchemy import true
+from apps.product.product import BASE_DIR
 from hash_model.schemas import UserCreate, ForgatPassword, ResetPassword, VerifyOTP, CeleryTest
 from hash_model.hash import Hash
 from sqlalchemy.orm import Session
@@ -19,7 +22,7 @@ from jose import jwt
 from apps.Celery.celery import create_celery
 from dotenv import load_dotenv
 from apps.auth.login import oauth2_scheme
-from apps.Users.tasks import operation, image_upload
+from apps.Users.tasks import operation, image_upload, any_file_upload
 
 load_dotenv()
 EMAIL = os.getenv("EMAIL")
@@ -115,6 +118,24 @@ async def image_upload_file(file: UploadFile = File(...), db: Session = Depends(
         return {"status":"failed", "message":"file not found"}
     image_upload.delay(file)
     return {"status":"success", "message":"file Uploaded success"}      
+
+@router.post("/file-upload", tags=["User"])
+def create_upload_files(file: UploadFile = File(...)):
+    if not file.filename:
+        return {"status":"failed", "message":"file not found"}
+    print(file.filename)
+    any_file_upload.delay(file)
+    return {"status":"success", "message":"file Uploaded success"}   
+
+    # File_DIR = './static/images/'
+    # if not os.path.exists(File_DIR):
+    #     os.makedirs(File_DIR)
+    # file_name = File_DIR + files.filename
+    # print(File_DIR)
+    # with open(file_name,'wb+') as f:
+    #     f.write(files.file.read())
+    #     f.close()
+    # return {"file": file_name}
 
 @router.put("/verify-email", tags=["User"])
 async def email_verification(token: str = Query(default=None), db: Session = Depends(get_db)):

@@ -28,14 +28,14 @@ from pathlib import Path
 
 router = APIRouter()
 
-BASE_DIR = Path(__file__).resolve().parent.parent
+BASE_DIR = Path(__file__).resolve().parent
 
 
 @router.post('/add-product', tags=['Product'])
 async def create_emp(p_name: str = Form(...), description: str = Form(...), price: str = Form(...), d_price: str = Form(...), size: str = Form(...), categ: str = Form(...),
                      file: UploadFile = File(...), db: Session = Depends(get_db), token: str = Depends(oauth2_scheme)):
     ext = os.path.splitext(file.filename)
-    IMG_DIR = os.path.join(BASE_DIR, 'static/pro_image')
+    IMG_DIR = './static/pro_image/'
     if not os.path.exists(IMG_DIR):
         os.makedirs(IMG_DIR)
     content = await file.read()
@@ -220,9 +220,14 @@ async def delete_product(id: int = Query(default=None), db: Session = Depends(ge
 
 @router.post("/file/", tags=['File'])
 async def create_upload_file(file: UploadFile = File(...)):
-    path_file = os.path.join(BASE_DIR / 'static/pro_image')
-    dirfiles = os.listdir(path_file)
-    return {"filename": file.filename, "dir": dirfiles}
+    File_DIR = './static/images/'
+    if not os.path.exists(File_DIR):
+        os.makedirs(File_DIR)
+    file_name = File_DIR + file.filename
+    with open(file_name,'wb+') as f:
+        f.write(files.file.read())
+        f.close()
+    return {"filename": file.filename, "dir": file_name}
 
 
 def itrfile():
