@@ -4,5 +4,7 @@ __pycache__/
 env/
 employee.db
 tempcode.txt
+static/
+file/
 images/
 pro_image/

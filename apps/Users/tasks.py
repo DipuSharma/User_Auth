@@ -37,7 +37,7 @@ def any_file_upload(files):
     file_name = File_DIR + files.filename
     print("Hello Dipu")
     with open(file_name,'wb+') as f:
-        f.write(files.file.read())
+        f.write(files.file.read(2048))
         f.close()
     return True
 
