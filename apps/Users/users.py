@@ -1,14 +1,13 @@
 import re
 import os
 import random
-from urllib import response
-import aiofiles
 import pdfkit
-from time import time
+from time import sleep, time
 from typing import List
 from fastapi.responses import FileResponse, StreamingResponse
 from fastapi import APIRouter, Body, Depends, Query, File, HTTPException, Response, status, UploadFile
 from sqlalchemy import true
+from tqdm import tqdm
 from apps.product.product import BASE_DIR
 from hash_model.schemas import UserCreate, ForgatPassword, ResetPassword, VerifyOTP, CeleryTest
 from hash_model.hash import Hash
@@ -120,22 +119,13 @@ async def image_upload_file(file: UploadFile = File(...), db: Session = Depends(
     return {"status":"success", "message":"file Uploaded success"}      
 
 @router.post("/file-upload", tags=["User"])
-def create_upload_files(file: UploadFile = File(...)):
-    if not file.filename:
-        return {"status":"failed", "message":"file not found"}
-    print(file.filename)
-    any_file_upload.delay(file)
-    return {"status":"success", "message":"file Uploaded success"}   
-
-    # File_DIR = './static/images/'
-    # if not os.path.exists(File_DIR):
-    #     os.makedirs(File_DIR)
-    # file_name = File_DIR + files.filename
-    # print(File_DIR)
-    # with open(file_name,'wb+') as f:
-    #     f.write(files.file.read())
-    #     f.close()
-    # return {"file": file_name}
+async def create_upload_files(file: UploadFile = File(...)):
+    file_size = len(file.file.read())
+    if len(file.file.read()) > 52428800:
+        return f"file size not valid"
+    else:
+        any_file_upload(file, file_size)
+    return {"Status":"Success", "message":"file uploaded"}
 
 @router.put("/verify-email", tags=["User"])
 async def email_verification(token: str = Query(default=None), db: Session = Depends(get_db)):

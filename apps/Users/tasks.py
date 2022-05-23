@@ -5,7 +5,6 @@ from celery import shared_task
 from fastapi.encoders import jsonable_encoder
 from celery.utils.log import get_task_logger
 from tqdm import tqdm, trange
-
 from apps.product.product import BASE_DIR
 
 logger = get_task_logger(__name__)
@@ -26,20 +25,25 @@ def operation(x, y, o):
         c = x * y
     if o == "devide":
         c = x / y
-    logger.info('Adds {0} + {1}'.format(x, y))
-    return c
+    # for i in tqdm(range(0, 100)):pass
+    return True
 
 @shared_task
-def any_file_upload(files):
+def file_upload(x):
+    return "Done"
+
+def any_file_upload(file, file_size):
     File_DIR = './static/files/'
     if not os.path.exists(File_DIR):
         os.makedirs(File_DIR)
-    file_name = File_DIR + files.filename
-    print("Hello Dipu")
+    file_name = File_DIR + file.filename
+    in_mb = file_size / 1024
     with open(file_name,'wb+') as f:
-        f.write(files.file.read(2048))
+        f.write(file.file.read())
         f.close()
-    return True
+    for i in tqdm(range(0, int(in_mb))):
+        sleep(.01)
+    file_upload.delay(in_mb)
 
 @shared_task
 def image_upload(files):
@@ -47,8 +51,8 @@ def image_upload(files):
     if not os.path.exists(File_DIR):
         os.makedirs(File_DIR)
     file_name = File_DIR + files.filename
-    print("Hello Dipu")
     with open(file_name,'wb+') as f:
         f.write(files.file.read())
         f.close()
+    print(files.file.read())
     return True
