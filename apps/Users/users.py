@@ -1,25 +1,28 @@
+import email
 import re
 import os
 import random
-from urllib import response
 import pdfkit
-from time import time
+from time import sleep, time
+from typing import List
 from fastapi.responses import FileResponse, StreamingResponse
 from fastapi import APIRouter, Body, Depends, Query, File, HTTPException, Response, status, UploadFile
 from sqlalchemy import true
+from tqdm import tqdm
+from apps.product.product import BASE_DIR
 from hash_model.schemas import UserCreate, ForgatPassword, ResetPassword, VerifyOTP, CeleryTest
 from hash_model.hash import Hash
 from sqlalchemy.orm import Session
 from fastapi_mail import FastMail, MessageSchema, ConnectionConfig
 from fastapi.encoders import jsonable_encoder
 from db_config.database import get_db
-from hash_model.models import User, OTP
+from hash_model.models import User, OTP, Profile_Pic
 from db_config.config import setting
 from jose import jwt
 from apps.Celery.celery import create_celery
 from dotenv import load_dotenv
 from apps.auth.login import oauth2_scheme
-from apps.Users.tasks import operation, image_upload
+from apps.Users.tasks import operation, image_upload, any_file_upload
 
 load_dotenv()
 EMAIL = os.getenv("EMAIL")
@@ -105,16 +108,40 @@ async def registration(user: UserCreate = Body(default=None), db: Session = Depe
                     detail="Email Already Exits Please do Registration to another Email"
                 )
         else:
-            return {"status":"failed","message":"Email Already Exists Please try to another email id"}
+            raise HTTPException(status_code=status.HTTP_208_ALREADY_REPORTED, detail="You are aleady exists")
     else:
-        return {"status": "failed", "message":"Password and Confirm Password Doesn't Match!!!!"}
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Password not matching")
 
 @router.post("/profile/", tags=["User"])
-async def image_upload_file(file: UploadFile = File(...), db: Session = Depends(get_db)):
+async def image_upload_file(file: UploadFile = File(...), 
+    db: Session = Depends(get_db), 
+    token: str = Depends(oauth2_scheme)):
+    verified = jwt.decode(token, setting.SECRET_KEY,algorithms=setting.ALGORITHM)
+    if not verified['expiry'] >= time():
+        return {"status":"failed", "message":"You are not Authorized"}
     if not file.filename:
-        return {"status":"failed", "message":"file not found"}
+            raise HTTPException(status_code=400, detail="File not found")
+    existed_data = db.query(Profile_Pic).filter(Profile_Pic.email == verified['sub']).first()
+    if existed_data:
+            raise HTTPException(status_code=status.HTTP_208_ALREADY_REPORTED, detail="Already exists email please update your profile")
+    user = db.query(User).filter(User.email == verified['sub'] and User.type == verified['type']).first()
+    File_DIR = './static/profile_image/'
+    profile_path= File_DIR + file.filename
+    profile = Profile_Pic(name=user.name, email=user.email, photo=profile_path, owner_id=user.id)
+    db.add(profile)
+    db.commit()
     image_upload.delay(file)
-    return {"status":"success", "message":"file Uploaded success"}      
+    return {"status":"success", "message":"file Uploaded success"}           
+    
+
+@router.post("/file-upload", tags=["User"])
+async def create_upload_files(file: UploadFile = File(...), db: Session = Depends(get_db)):
+    file_size = len(file.file.read())
+    if len(file.file.read()) > 52428800:
+        return f"file size not valid"
+    else:
+        any_file_upload(file, file_size)
+    return {"Status":"Success", "message":"file uploaded"}
 
 @router.put("/verify-email", tags=["User"])
 async def email_verification(token: str = Query(default=None), db: Session = Depends(get_db)):
