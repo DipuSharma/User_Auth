@@ -10,7 +10,6 @@ from apps.Celery import celery
 from apps.Celery.celery import create_celery
 from db_config.config import setting
 from hash_model.schemas import LoginUser
-# from apps.auth.tasks import divide, image_upload,send_mail_task, sleepy
 from fastapi import BackgroundTasks
 import re
 

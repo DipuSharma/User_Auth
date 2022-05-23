@@ -47,12 +47,12 @@ def any_file_upload(file, file_size):
 
 @shared_task
 def image_upload(files):
-    File_DIR = './static/images/'
+    File_DIR = './static/profile_image/'
     if not os.path.exists(File_DIR):
         os.makedirs(File_DIR)
     file_name = File_DIR + files.filename
     with open(file_name,'wb+') as f:
         f.write(files.file.read())
         f.close()
-    print(files.file.read())
+    print(len(files.file.read()))
     return True
