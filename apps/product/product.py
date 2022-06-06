@@ -42,15 +42,16 @@ async def create_emp(p_name: str = Form(...), description: str = Form(...), pric
     if file.content_type not in ['image/jpeg', 'image/png']:
         raise HTTPException(
             status_code=406, detail="Only .jpeg or .png  files allowed")
-    file_name = f'{uuid.uuid4().hex}{ext}'
-    async with aiofiles.open(os.path.join(IMG_DIR, file_name), mode='wb') as f:
+    file_name = IMG_DIR + file.filename
+    async with aiofiles.open(file_name, 'wb') as f:
         await f.write(content)
     if token:
         verified = jwt.decode(token, setting.SECRET_KEY,
                               algorithms=setting.ALGORITHM)
         if verified['expiry'] >= time():
             user = db.query(User).filter(User.email == verified['sub'] and User.type == verified['type']).first()
-            print(user.id)
+            if not user.type == 'shop':
+                raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="you have not permission")
             e_name = db.query(Product).filter(and_(Product.shop_id == user.id, Product.product_name == p_name)).first()
             if not e_name:
                 owner_id = user.id

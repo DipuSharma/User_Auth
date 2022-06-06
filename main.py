@@ -27,7 +27,7 @@ app = FastAPI(title=setting.TITLE,
 
 
 
-origins = ["http://localhost:3000", "http://localhost:8080"]
+origins = ["http://localhost:3000"]
 
 app.add_middleware(
     CORSMiddleware,

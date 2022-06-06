@@ -16,7 +16,7 @@ def sleepy(duration):
 
 @shared_task
 def operation(x, y, o):
-    sleep(2)
+    sleep(.1)
     if o == "add":
         c = x + y
     if o == "sub":
@@ -26,7 +26,7 @@ def operation(x, y, o):
     if o == "devide":
         c = x / y
     # for i in tqdm(range(0, 100)):pass
-    return True
+    return c
 
 @shared_task
 def file_upload(x):
