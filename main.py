@@ -1,6 +1,6 @@
 from fastapi import FastAPI, File, UploadFile
 from fastapi.staticfiles import StaticFiles
-from apps.Address import address
+# from apps.Address import address
 from apps.Shop import shop
 from apps.Users import users
 from apps.auth import login
@@ -26,7 +26,6 @@ app = FastAPI(title=setting.TITLE,
               docs_url="/dipu")
 
 
-
 origins = ["http://localhost:3000"]
 
 app.add_middleware(
@@ -47,5 +46,5 @@ app.include_router(login.router)
 app.include_router(users.router)
 app.include_router(product.router)
 app.include_router(cart.router)
-app.include_router(address.router)
+# app.include_router(address.router)
 app.include_router(shop.router)

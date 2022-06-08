@@ -2,8 +2,12 @@
 <html>
     <head></head>
     <body>
-        <h1>Hello Dipu Sharma</h1>
+        <h1>Hello {{user.name}}</h1>
         <h3>{{user.id}}</h3>
-        <h3>{{user.email}}  {{user.name}}</h3>  
+        <h3>{{user.email}}</h3>
+        {% for data in user.address%}
+            <h4>{{data.zipcode}}</h4>
+            <h4>{{data.mobile_number}}</h4>
+        {%endfor%}
     </body>
 </html>
