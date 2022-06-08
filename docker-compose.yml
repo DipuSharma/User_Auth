@@ -4,3 +4,17 @@ services:
     build: .
     command: uvicorn main:app --host 0.0.0.0
     ports: ["8000:8000"]
+  redis:
+    container_name: redis
+    image: redis:4.0-alpine
+  celery_worker:
+    container_name: celery_worker
+    build: .
+    command: celery -A main.celery worker --loglevel=info
+    volumes:
+      - .:/app
+    environment:
+      - BROKER_URL='redis://localhost:6379'
+      - CELERY_RESULT_BACKEND='redis://localhost:6379'
+    depends_on:
+      - redis
